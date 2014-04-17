@@ -121,7 +121,7 @@ def generate_win(metric):
     results = fetch_ip_data()  
 
     upscript_header=textwrap.dedent("""@echo off
-    for /F "tokens=3" %%* in ('route print ^| findstr "\\<0.0.0.0\\>"') do set "gw=%%*"
+    for /F "tokens=3" %%* in ('route print | findstr "\\<0.0.0.0\\>"') do set "gw=%%*"
     
     """)
     
@@ -129,11 +129,23 @@ def generate_win(metric):
     downfile=open('vpndown.bat','w')
     
     upfile.write(upscript_header)
-    upfile.write('\n')
-    upfile.write('ipconfig /flushdns\n\n')
+    upfile.write("""
+ipconfig /flushdns
+
+route add 10.0.0.0/8 "${OLDGW}"
+route add 172.16.0.0/12 "${OLDGW}"
+route add 192.168.0.0/16 "${OLDGW}
+""")
     
     downfile.write("@echo off")
     downfile.write('\n')
+    downfile.write("""
+ipconfig /flushdns
+
+route delete 10.0.0.0/8 "${OLDGW}"
+route delete 172.16.0.0/12 "${OLDGW}"
+route delete 192.168.0.0/16 "${OLDGW}
+""")
     
     for ip,mask,_ in results:
         upfile.write('route add %s mask %s %s metric %d\n'%(ip,mask,"%gw%",metric))
