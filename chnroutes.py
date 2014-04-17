@@ -121,22 +121,20 @@ def generate_win(metric):
     results = fetch_ip_data()  
 
     upscript_header=textwrap.dedent("""@echo off
-    for /F "tokens=3" %%* in ('route print | findstr "\\<0.0.0.0\\>"') do set "gw=%%*"
-    
-    """)
-    
+for /F "tokens=3" %%* in ('route print ^| findstr "\\<0.0.0.0\\>"') do set "gw=%%*"
+""")
+
     upfile=open('vpnup.bat','w')
     downfile=open('vpndown.bat','w')
-    
+
     upfile.write(upscript_header)
     upfile.write("""
 ipconfig /flushdns
-
-route add 10.0.0.0 255.0.0.0 %gw%
-route add 172.16.0.0 255.255.0.0 %gw%
-route add 192.168.0.0 255.255.255.0 %gw%
+route add 10.0.0.0 mask 255.0.0.0 %gw% metric 2
+route add 172.16.0.0 mask 255.255.0.0 %gw% metric 2
+route add 192.168.0.0 mask 255.255.255.0 %gw% metric 2
 """)
-    
+
     downfile.write("@echo off")
     downfile.write('\n')
     downfile.write("""
@@ -147,9 +145,13 @@ route delete 172.16.0.0
 route delete 192.168.0.0
 """)
     
+
+    count = 1
+    total = len(results)
     for ip,mask,_ in results:
-        upfile.write('route add %s mask %s %s metric %d\n'%(ip,mask,"%gw%",metric))
-        downfile.write('route delete %s\n'%(ip))
+        upfile.write('route add %s mask %s %s metric %d >nul\necho %d/%d\n'%(ip,mask,"%gw%",metric, count, total))
+        downfile.write('route delete %s >nul\necho %d/%d\n'%(ip, count, total))
+        count += 1
     
     upfile.close()
     downfile.close()
@@ -209,8 +211,13 @@ def fetch_ip_data():
     url=r'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest'
     data=urllib2.urlopen(url).read()
     
-    cnregex=re.compile(r'apnic\|cn\|ipv4\|[0-9\.]+\|[0-9]+\|[0-9]+\|a.*',re.IGNORECASE)
-    cndata=cnregex.findall(data)
+    d = open('apnic.data', 'wb')
+    d.write(data)
+    d.close()
+
+    # data = open('apnic.data').read()
+    # cnregex=re.compile(r'apnic\|cn\|ipv4\|[0-9\.]+\|[0-9]+\|[0-9]+\|a.*',re.IGNORECASE)
+    # cndata=cnregex.findall(data)
     
     results=[]
 
