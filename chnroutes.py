@@ -132,9 +132,9 @@ def generate_win(metric):
     upfile.write("""
 ipconfig /flushdns
 
-route add 10.0.0.0/8 "${OLDGW}"
-route add 172.16.0.0/12 "${OLDGW}"
-route add 192.168.0.0/16 "${OLDGW}
+route add 10.0.0.0 255.0.0.0 %gw%
+route add 172.16.0.0 255.255.0.0 %gw%
+route add 192.168.0.0 255.255.255.0 %gw%
 """)
     
     downfile.write("@echo off")
@@ -142,9 +142,9 @@ route add 192.168.0.0/16 "${OLDGW}
     downfile.write("""
 ipconfig /flushdns
 
-route delete 10.0.0.0/8 "${OLDGW}"
-route delete 172.16.0.0/12 "${OLDGW}"
-route delete 192.168.0.0/16 "${OLDGW}
+route delete 10.0.0.0
+route delete 172.16.0.0
+route delete 192.168.0.0
 """)
     
     for ip,mask,_ in results:
@@ -244,7 +244,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description="Generate routing rules for vpn.")
     parser.add_argument('-p','--platform',
                         dest='platform',
-                        default='openvpn',
+                        default='win',
                         nargs='?',
                         help="Target platforms, it can be openvpn, mac, linux," 
                         "win, android. openvpn by default.")
