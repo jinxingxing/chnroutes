@@ -211,13 +211,13 @@ def fetch_ip_data():
     url=r'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest'
     data=urllib2.urlopen(url).read()
     
-    d = open('apnic.data', 'wb')
-    d.write(data)
-    d.close()
-
+    # d = open('apnic.data', 'wb')
+    # d.write(data)
+    # d.close()
     # data = open('apnic.data').read()
-    # cnregex=re.compile(r'apnic\|cn\|ipv4\|[0-9\.]+\|[0-9]+\|[0-9]+\|a.*',re.IGNORECASE)
-    # cndata=cnregex.findall(data)
+    
+    cnregex=re.compile(r'apnic\|cn\|ipv4\|[0-9\.]+\|[0-9]+\|[0-9]+\|a.*',re.IGNORECASE)
+    cndata=cnregex.findall(data)
     
     results=[]
 
